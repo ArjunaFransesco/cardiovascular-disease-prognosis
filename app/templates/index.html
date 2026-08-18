@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardiovascular Disease Prognosis & Clinical Risk Engine | ML Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="background-glow"></div>
+
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>Cardiovascular Disease Prognosis</h1>
+                    <p class="subtitle">AI-Driven 10-Year ASCVD Risk Stratification & Explainable Clinical Triage</p>
+                </div>
+            </div>
+            <div class="header-badges">
+                <span class="badge badge-accent">Clinical Model: {{ stats.get('best_model', 'Logistic Baseline') }}</span>
+                <span class="badge badge-subtle">ROC-AUC: {{ stats.get('benchmark_comparison', {}).get(stats.get('best_model', 'Logistic Regression (Clinical Baseline)'), {}).get('roc_auc', 0.7504) }}</span>
+                <a href="https://github.com/ArjunaFransesco/cardiovascular-disease-prognosis" target="_blank" class="badge badge-github">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                    GitHub Repo
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="content-grid">
+            <!-- Patient Input Form -->
+            <div class="card form-card">
+                <div class="card-header">
+                    <h2>Patient Clinical Profile & Vitals</h2>
+                    <div class="preset-controls">
+                        <span class="preset-label">Presets:</span>
+                        <button type="button" class="btn-preset" id="preset-low">Low Risk</button>
+                        <button type="button" class="btn-preset" id="preset-moderate">Moderate</button>
+                        <button type="button" class="btn-preset" id="preset-high">High Risk</button>
+                    </div>
+                </div>
+
+                <form id="cardio-form" class="cardio-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="age">Patient Age (Years)</label>
+                            <input type="number" id="age" name="age" value="54" min="20" max="95" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sex">Biological Sex</label>
+                            <select id="sex" name="sex">
+                                <option value="1" selected>Male (1)</option>
+                                <option value="0">Female (0)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="trestbps">Resting Blood Pressure (mmHg)</label>
+                            <input type="number" id="trestbps" name="trestbps" value="132" min="80" max="240" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="chol">Serum Cholesterol (mg/dL)</label>
+                            <input type="number" id="chol" name="chol" value="230" min="100" max="600" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="thalach">Max Heart Rate Achieved (bpm)</label>
+                            <input type="number" id="thalach" name="thalach" value="145" min="60" max="230" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="oldpeak">ST Depression (Exercise vs Rest)</label>
+                            <input type="number" id="oldpeak" name="oldpeak" value="1.2" min="0.0" max="7.0" step="0.1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cp">Chest Pain Type</label>
+                            <select id="cp" name="cp">
+                                <option value="0" selected>Typical Angina (0)</option>
+                                <option value="1">Atypical Angina (1)</option>
+                                <option value="2">Non-Anginal Pain (2)</option>
+                                <option value="3">Asymptomatic (3)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="fbs">Fasting Blood Sugar > 120 mg/dL?</label>
+                            <select id="fbs" name="fbs">
+                                <option value="0" selected>False / Normal (<= 120)</option>
+                                <option value="1">True / Elevated (> 120)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="exang">Exercise Induced Angina</label>
+                            <select id="exang" name="exang">
+                                <option value="0" selected>No (0)</option>
+                                <option value="1">Yes (1)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="restecg">Resting ECG Results</label>
+                            <select id="restecg" name="restecg">
+                                <option value="0" selected>Normal (0)</option>
+                                <option value="1">ST-T Wave Abnormality (1)</option>
+                                <option value="2">Left Ventricular Hypertrophy (2)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="slope">ST Segment Peak Slope</label>
+                            <select id="slope" name="slope">
+                                <option value="0">Upsloping (0)</option>
+                                <option value="1" selected>Flat (1)</option>
+                                <option value="2">Downsloping (2)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="ca">Major Vessels Fluoroscopy (0-3)</label>
+                            <select id="ca" name="ca">
+                                <option value="0" selected>0 Vessels</option>
+                                <option value="1">1 Vessel</option>
+                                <option value="2">2 Vessels</option>
+                                <option value="3">3 Vessels</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="thal">Thalassemia Defect Status</label>
+                        <select id="thal" name="thal">
+                            <option value="1">Normal (1)</option>
+                            <option value="2" selected>Fixed Defect (2)</option>
+                            <option value="3">Reversible Defect (3)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="btn-assess">
+                        <span class="btn-text">Compute 10-Year ASCVD Risk</span>
+                        <span class="spinner" id="form-spinner"></span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Prognosis & Risk Card -->
+            <div class="card results-card" id="results-container">
+                <div class="card-header">
+                    <h2>Cardiovascular Prognosis & Triage</h2>
+                    <span class="decision-badge" id="badge-recommendation">PENDING</span>
+                </div>
+
+                <div class="risk-display-wrapper">
+                    <div class="risk-circle">
+                        <div class="risk-number" id="risk-val">--%</div>
+                        <div class="risk-title">Estimated 10-Yr Risk</div>
+                        <div class="risk-tier" id="risk-tier">Awaiting Vitals</div>
+                    </div>
+
+                    <div class="metrics-column">
+                        <div class="metric-box">
+                            <span class="metric-label">ACC/AHA Classification</span>
+                            <span class="metric-val" id="metric-category">--</span>
+                            <div class="meter-bar">
+                                <div class="meter-fill" id="meter-risk-fill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Clinical Risk Tier</span>
+                            <span class="metric-val" id="metric-tier">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="guidance-box" id="guidance-box">
+                    <h4>Clinical Guidance & Action Plan</h4>
+                    <p id="guidance-text">Enter patient parameters to view clinical recommendation protocols.</p>
+                </div>
+
+                <div class="risk-factors-section">
+                    <h3>Identified Adverse Risk Biomarkers</h3>
+                    <ul class="factor-list" id="factor-list">
+                        <li class="factor-placeholder">Submit patient profile to evaluate cardiovascular risk drivers.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>Built by <a href="https://github.com/ArjunaFransesco" target="_blank">Arjuna Fransesco</a> &bull; Automated Daily Machine Learning Portfolio Project</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
